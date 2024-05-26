@@ -16,7 +16,18 @@ def imagemagick(color_count, img, magick_command):
              "-unique-colors", "txt:-"]
     img += "[0]"
 
-    return subprocess.check_output([*magick_command, img, *flags]).splitlines()
+    try:
+        output = subprocess.check_output([*magick_command, img, *flags],
+                                         stderr=subprocess.STDOUT).splitlines()
+        print(output)
+    except subprocess.CalledProcessError as Err:
+        logging.error("Imagemagick error: %s", Err)
+        logging.error(
+          "IM 7 disables stdout by default, check the wiki for the fix."
+        )
+        sys.exit(1)
+
+    return output
 
 
 def has_im():
@@ -58,6 +69,7 @@ def adjust(colors, light):
     """Adjust the generated colors and store them in a dict that
        we will later save in json format."""
     raw_colors = colors[:1] + colors[8:16] + colors[8:-1]
+    print(raw_colors)
 
     # Manually adjust colors.
     if light:
@@ -78,6 +90,7 @@ def adjust(colors, light):
         raw_colors[8] = util.darken_color(raw_colors[7], 0.30)
         raw_colors[15] = util.blend_color(raw_colors[15], "#EEEEEE")
 
+    print(raw_colors)
     return raw_colors
 
 
